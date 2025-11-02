@@ -23,6 +23,11 @@ services:
         limits:
           memory: 256M
           pids: 50
+    environment:
+      - UID=1065
+      - GID=100
+      - COLLECTION_ROOT=/data/collections/collection-root
+      - SHARED_COLLECTIONS=         # example: "/familycalendar" leave empty for no default    
     healthcheck:
       test: curl -f http://127.0.0.1:5232 || exit 1
       interval: 30s
