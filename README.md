@@ -21,9 +21,9 @@ This is a custom fork of [tomsquest/docker-radicale](https://github.com/tomsques
 - Users: `bob`, `alice`, `dad`
 - Each user has a **private calendar**.
 - A shared collection called `familycalendar` contains one calendar per family member:
-  - /data/collections/collection-root/familycalendar/bob.ics
-  - /data/collections/collection-root/familycalendar/alice.ics
-  - /data/collections/collection-root/familycalendar/dad.ics
+  - /data/collections/collection-root/familycalendar/bob
+  - /data/collections/collection-root/familycalendar/alice
+  - /data/collections/collection-root/familycalendar/dad
 - After symlink creation, users see shared calendars inside their personal collection:
   - /data/collections/collection-root/bob/bob.ics # private
   - /data/collections/collection-root/bob/familycalendar -> ../familycalendar # shared
@@ -40,6 +40,7 @@ This is a custom fork of [tomsquest/docker-radicale](https://github.com/tomsques
 | UID                | 1065                          | UID to run Radicale inside container               |
 | GID                | 100                           | GID to run Radicale inside container               |
 | COLLECTION_ROOT    | /data/collections/collection-root | Root folder for user collections                  |
+| SHARED_ROOT        | /data/collections/collection-shared | Root folder for shared collections                  |
 | SHARED_COLLECTIONS | empty                         | Comma-separated list of shared collections to symlink for all users |
 
 **Example in `docker-compose.yml`:**
@@ -49,39 +50,43 @@ environment:
   - UID=1065
   - GID=100
   - COLLECTION_ROOT=/data/collections/collection-root
-  - SHARED_COLLECTIONS=/familycalendar
+  - SHARED_ROOT=/data/collections/collection-shared
+  - SHARED_COLLECTIONS=/data/collections/collection-root/dad/Dads-Work-cal
 
 Folder Structure
 Before Symlinks
 
 /data/collections/collection-root/
 ├── bob/                  🧑
-│   └── bob.ics           📅 private
+│   └── Private-cal           📅 private
 ├── alice/                 👩
-│   └── alice.ics          📅 private
+│   └── Private-cal          📅 private
 ├── dad/                  👨
-│   └── dad.ics           📅 private
-└── familycalendar/       👪 shared
-    ├── bob.ics           📅 shared
-    ├── alice.ics          📅 shared
-    └── dad.ics           📅 shared
+│   └── Private-cal           📅 private
+│   └── Dads-Work-cal         📅 private
+
+/data/collections/collection-shared
+  ├── bob           📅 shared
+  ├── alice          📅 shared
+  └── dad           📅 shared
+  └── family        📅 shared    
 
 After Symlinks
 
 /data/collections/collection-root/
 ├── bob/                  🧑
-│   ├─ bob.ics           📅 private
+│   ├─ Private-cal           📅 private
 │   └─ familycalendar 🔗 ──> ../familycalendar  # shared
+│   └─ Dads-Work-cal         ../dad/Dads-Work-cal # shared
 ├── alice/                 👩
-│   ├─ alice.ics          📅 private
+│   ├─ Private-cal           📅 private
 │   └─ familycalendar 🔗 ──> ../familycalendar  # shared
+│   └─ Dads-Work-cal         ../dad/Dads-Work-cal # shared
 ├── dad/                  👨
-│   ├─ dad.ics           📅 private
+│   ├─ Private-cal           📅 private
+│   └─ Dads-Work-cal           📅 private
 │   └─ familycalendar 🔗 ──> ../familycalendar  # shared
-└── familycalendar/       👪 shared
-    ├─ bob.ics           📅 shared
-    ├─ alice.ics          📅 shared
-    └─ dad.ics           📅 shared
+
 
 Quick Start Diagram
 
@@ -91,7 +96,7 @@ Quick Start Diagram
 │ UID=1065                    │
 │ GID=100                     │
 │ COLLECTION_ROOT=/data/...   │
-│ SHARED_COLLECTIONS=/familycalendar
+│ SHARED_ROOT=/data/collections/collection-shared|
 └─────────────┬──────────────┘
               │
               ▼

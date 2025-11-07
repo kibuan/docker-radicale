@@ -6,6 +6,7 @@ logging.basicConfig(level=logging.INFO)
 
 COLLECTION_ROOT = os.environ.get("COLLECTION_ROOT", "/data/collections/collection-root")
 SHARED_ROOT = os.environ.get("SHARED_ROOT", "/data/collections/collection-shared")
+SHARED_COLLECTIONS = os.environ.get("SHARED_COLLECTIONS", "") # absolute path to extra shared collections. Use , as delimiter 
 
 def ensure_symlink(user_folder, shared_folder):
     basename = os.path.basename(shared_folder.rstrip("/"))
@@ -25,7 +26,7 @@ def ensure_symlink(user_folder, shared_folder):
 def remove_old_symlinks(user_folder, valid_targets):
     for entry in os.listdir(user_folder):
         path = os.path.join(user_folder, entry)
-        if os.path.islink(path) and os.readlink(path) not in valid_targets:
+        if os.path.islink(path) and os.path.abspath(os.readlink(path)) not in map(os.path.abspath, valid_targets):
             logging.info(f"Removing outdated symlink {path}")
             os.unlink(path)
 
@@ -53,6 +54,16 @@ def main():
         for shared_folder in shared_folders:
             ensure_symlink(user_folder, shared_folder)
             valid_targets.append(shared_folder)
+
+        for shared_folder in SHARED_COLLECTIONS.split(','):
+            shared_folder = shared_folder.strip()
+            if not shared_folder:
+                continue
+            if os.path.isdir(shared_folder):
+                ensure_symlink(user_folder, shared_folder)
+                valid_targets.append(shared_folder)
+            else:
+                logging.warning(f"Shared collection {shared_folder} does not exist")           
 
         remove_old_symlinks(user_folder, valid_targets)
 
